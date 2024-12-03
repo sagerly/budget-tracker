@@ -1,26 +1,37 @@
-/**
- * Below are the colors that are used in the app. The colors are defined in the light and dark mode.
- * There are many other ways to style your app. For example, [Nativewind](https://www.nativewind.dev/), [Tamagui](https://tamagui.dev/), [unistyles](https://reactnativeunistyles.vercel.app), etc.
- */
-
-const tintColorLight = '#0a7ea4';
-const tintColorDark = '#fff';
+// constants/Colors.ts
 
 export const Colors = {
   light: {
-    text: '#11181C',
-    background: '#fff',
-    tint: tintColorLight,
-    icon: '#687076',
-    tabIconDefault: '#687076',
-    tabIconSelected: tintColorLight,
+    primary: '#007AFF',          // Main brand color
+    secondary: '#5856D6',        // Secondary brand color
+    background: '#F2F2F7',       // Main background
+    card: '#FFFFFF',             // Card/Surface background
+    text: {
+      primary: '#000000',        // Primary text
+      secondary: '#666666',      // Secondary/dimmed text
+      inverse: '#FFFFFF'         // Text on dark backgrounds
+    },
+    border: '#E5E5EA',          // Border color
+    success: '#34C759',         // Success states
+    danger: '#FF3B30',          // Error states
+    warning: '#FFCC00'          // Warning states
   },
   dark: {
-    text: '#ECEDEE',
-    background: '#151718',
-    tint: tintColorDark,
-    icon: '#9BA1A6',
-    tabIconDefault: '#9BA1A6',
-    tabIconSelected: tintColorDark,
-  },
+    primary: '#0A84FF',
+    secondary: '#5E5CE6',
+    background: '#000000',
+    card: '#1C1C1E',
+    text: {
+      primary: '#FFFFFF',
+      secondary: '#EBEBF5',
+      inverse: '#000000'
+    },
+    border: '#38383A',
+    success: '#30D158',
+    danger: '#FF453A',
+    warning: '#FFD60A'
+  }
 };
+
+// Type definitions for our theme
+export type ThemeColors = typeof Colors.light;
