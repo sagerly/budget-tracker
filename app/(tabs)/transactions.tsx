@@ -1,16 +1,16 @@
 // app/(tabs)/transactions.tsx
-import React, { useEffect, useState } from 'react';
-import { StyleSheet, View, FlatList } from 'react-native';
+import React, { useEffect, useState, useCallback } from 'react';
+import { StyleSheet, View, FlatList, RefreshControl } from 'react-native';
 import { ThemedText } from '../../components/ThemedText';
+import { ThemedView } from '../../components/ThemedView';
 import { StorageService, Transaction } from '../../services/storage';
+import { useTheme } from '../../hooks/useTheme';
 
 export default function TransactionsScreen() {
+  const { colors } = useTheme();
   const [transactions, setTransactions] = useState<Transaction[]>([]);
   const [loading, setLoading] = useState(true);
-
-  useEffect(() => {
-    loadTransactions();
-  }, []);
+  const [refreshing, setRefreshing] = useState(false);
 
   const loadTransactions = async () => {
     try {
@@ -23,27 +23,50 @@ export default function TransactionsScreen() {
     }
   };
 
+  // Handle manual refresh
+  const onRefresh = useCallback(async () => {
+    setRefreshing(true);
+    await loadTransactions();
+    setRefreshing(false);
+  }, []);
+
+  useEffect(() => {
+    // Initial load
+    loadTransactions();
+
+    // Subscribe to storage changes
+    const unsubscribe = StorageService.addListener(loadTransactions);
+
+    // Cleanup subscription on unmount
+    return () => {
+      unsubscribe();
+    };
+  }, []);
+
   return (
-    <View style={styles.container}>
+    <ThemedView style={styles.container}>
       <ThemedText style={styles.title}>Transactions</ThemedText>
       
-      {loading ? (
-        <ThemedText>Loading...</ThemedText>
-      ) : (
-        <FlatList
-          data={transactions}
-          keyExtractor={(item) => item.id}
-          renderItem={({ item }) => (
-            <View style={styles.transactionItem}>
-              <ThemedText>{item.description}</ThemedText>
-              <ThemedText>
-                {item.type === 'expense' ? '-' : '+'}${item.amount}
-              </ThemedText>
-            </View>
-          )}
-        />
-      )}
-    </View>
+      <FlatList
+        data={transactions}
+        keyExtractor={(item) => item.id}
+        renderItem={({ item }) => (
+          <View style={styles.transactionItem}>
+            <ThemedText>{item.description}</ThemedText>
+            <ThemedText>
+              {item.type === 'expense' ? '-' : '+'}${item.amount}
+            </ThemedText>
+          </View>
+        )}
+        refreshControl={
+          <RefreshControl
+            refreshing={refreshing}
+            onRefresh={onRefresh}
+            tintColor={colors.primary}
+          />
+        }
+      />
+    </ThemedView>
   );
 }
 
