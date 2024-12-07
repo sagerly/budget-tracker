@@ -4,16 +4,8 @@ import { ThemedText } from '../../components/ThemedText';
 import { ThemedView } from '../../components/ThemedView';
 import { Button } from '../../components/ui/Button';
 import { router } from 'expo-router';
-
-// Define a Transaction type
-interface Transaction {
-  id: string;
-  amount: number;
-  description: string;
-  category: string;
-  type: 'income' | 'expense';
-  date: Date;
-}
+import { StorageService, Transaction } from '../../services/storage';
+import { Input } from '../../components/ui/Input'
 
 export default function AddTransactionScreen() {
   // Form state
@@ -54,29 +46,22 @@ export default function AddTransactionScreen() {
         date: new Date(),
       };
 
-      // Here you would typically:
-      // 1. Save to local storage
-      // await AsyncStorage.setItem('transactions', JSON.stringify([...existingTransactions, newTransaction]));
-      
-      // 2. Or send to an API
-      // await api.createTransaction(newTransaction);
-      
-      // 3. Or update your global state (Context/Redux)
-      // dispatch({ type: 'ADD_TRANSACTION', payload: newTransaction });
+      const success = await StorageService.addTransaction(newTransaction);
 
-      console.log('New transaction:', newTransaction);
-      
-      // Show success message
-      Alert.alert(
-        'Success',
-        'Transaction added successfully',
-        [
-          {
-            text: 'OK',
-            onPress: () => router.push('/(tabs)/transactions')
-          }
-        ]
-      );
+      if (success) {
+        Alert.alert(
+          'Success',
+          'Transaction added successfully',
+          [
+            {
+              text: 'OK',
+              onPress: () => router.push('/(tabs)/transactions')
+            }
+          ]
+        );
+      } else {
+        throw new Error('Failed to save transaction');
+      }
     } catch (error) {
       Alert.alert('Error', 'Failed to add transaction');
       console.error('Error adding transaction:', error);
@@ -108,55 +93,48 @@ export default function AddTransactionScreen() {
 
   return (
     <ThemedView style={styles.container}>
-      <ThemedText style={styles.title}>Add Transaction</ThemedText>
+      <View style={styles.content}>
+        <ThemedText style={styles.title}>Add Transaction</ThemedText>
 
-      <View style={styles.form}>
-        {/* Transaction Type Toggle */}
-        <View style={styles.typeToggle}>
-          <Button
-            variant={type === 'expense' ? 'primary' : 'outline'}
-            label="Expense"
-            onPress={() => setType('expense')}
-            size="small"
-            style={styles.toggleButton}
-          />
-          <Button
-            variant={type === 'income' ? 'primary' : 'outline'}
-            label="Income"
-            onPress={() => setType('income')}
-            size="small"
-            style={styles.toggleButton}
-          />
-        </View>
+        <View style={styles.form}>
+          {/* Transaction Type Toggle */}
+          <View style={styles.typeToggle}>
+            <Button
+              variant={type === 'expense' ? 'primary' : 'outline'}
+              label="Expense"
+              onPress={() => setType('expense')}
+              size="small"
+              style={styles.toggleButton}
+            />
+            <Button
+              variant={type === 'income' ? 'primary' : 'outline'}
+              label="Income"
+              onPress={() => setType('income')}
+              size="small"
+              style={styles.toggleButton}
+            />
+          </View>
 
-        {/* Amount Input */}
-        <View style={styles.inputContainer}>
-          <ThemedText>Amount</ThemedText>
-          <TextInput
-            style={styles.input}
+          {/* Amount Input */}
+          <Input
+            label="Amount"
             keyboardType="decimal-pad"
             placeholder="0.00"
             value={amount}
             onChangeText={setAmount}
           />
-        </View>
 
-        {/* Description Input */}
-        <View style={styles.inputContainer}>
-          <ThemedText>Description</ThemedText>
-          <TextInput
-            style={styles.input}
+          {/* Description Input */}
+          <Input
+            label="Description"
             placeholder="Enter description"
             value={description}
             onChangeText={setDescription}
           />
-        </View>
 
-        {/* Category Input */}
-        <View style={styles.inputContainer}>
-          <ThemedText>Category</ThemedText>
-          <TextInput
-            style={styles.input}
+          {/* Category Input */}
+          <Input
+            label="Category"
             placeholder="Select category"
             value={category}
             onChangeText={setCategory}
@@ -186,6 +164,9 @@ export default function AddTransactionScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
+  },
+  content: {
+    flex: 1,
     padding: 16,
   },
   title: {
@@ -204,21 +185,12 @@ const styles = StyleSheet.create({
   toggleButton: {
     flex: 1,
   },
-  inputContainer: {
-    gap: 8,
-  },
-  input: {
-    borderWidth: 1,
-    borderColor: '#E5E5EA',
-    borderRadius: 8,
-    padding: 12,
-    fontSize: 16,
-  },
   buttonContainer: {
     flexDirection: 'row',
-    justifyContent: 'space-between',
-    marginTop: 'auto',
+    padding: 16,
     gap: 12,
+    borderTopWidth: 1,
+    borderTopColor: '#E5E5EA',
   },
   button: {
     flex: 1,
